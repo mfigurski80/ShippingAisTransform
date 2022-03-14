@@ -107,7 +107,9 @@ def buildFullDataset():
     if not didInitAggregate:
         last = readLastLine(agg_fname).strip().split(",")
         if last[1] != agg_cols[1]:
-            start_time = datetime.fromisoformat(last[1]) + timedelta(days=1)
+            start_time = datetime.strptime(last[1], "%Y-%m-%dT%H:%M:%S") + timedelta(
+                days=1
+            )
             print(f"FOUND data up to: {start_time.date()}")
     out_f = open(agg_fname, "a")
 
