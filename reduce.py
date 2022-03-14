@@ -43,6 +43,13 @@ def readLastLine(filename) -> str:
     return last_line
 
 
+def readShipSet(filename) -> set:
+    with open(filename, "r") as f:
+        r = csv.reader(f)
+        next(r)
+        return {i[0] for i in r}
+
+
 def writeFilteredCargoShips(r, out_w, uniq: set, ship_w):
     """Main function that iterates over rows of data and writes the ones it wants to
     output csvs. Takes csv readers and writers (and a set for storing unique ships)
@@ -114,11 +121,14 @@ def buildFullDataset():
     out_f = open(agg_fname, "a")
 
     # set up unique ships dataset
+    uniq = set({})
     ship_fname = "ships.csv"
     ship_cols = ["MMSI", "Name", "Type", "Length", "Width"]
     didInitShips = initCSV(ship_fname, ship_cols)
+    if not didInitShips:
+        uniq = readShipSet(ship_fname)
+        print(f"FOUND #{len(uniq)} existing ship entries")
     ships_f = open(ship_fname, "a")
-    uniq = set({})
 
     # continue building
     forEachCSV(
