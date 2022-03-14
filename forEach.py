@@ -3,7 +3,9 @@ import requests
 import zipfile
 from io import BytesIO
 import os
-from multiprocessing import Pool, cpu_count
+
+#  from functools import partial
+#  from multiprocessing import Pool, cpu_count
 
 
 def getFromZip(url: str):
@@ -14,6 +16,7 @@ def getFromZip(url: str):
     files = z.namelist()
     if len(files) > 1:
         raise OSError(f"Extracted zipfile with multiple files: {files}")
+    #  print(f"Extracting file {files[0]}")
     z.extractall()
     z.close()
     return files[0]
@@ -23,15 +26,16 @@ def makeUrlFor(t):
     return f"https://coast.noaa.gov/htdata/CMSP/AISDataHandler/{t.year}/AIS_{t.year}_{str(t.month).zfill(2)}_{str(t.day).zfill(2)}.zip"
 
 
-def __processFunc(url):
+def __processFunc(url, action):
     try:
         print(url)
         savedName = getFromZip(url)
+        #  print(f"Got csv {savedName}")
         action(savedName)
         os.remove(savedName)
-        print(f"Done with {savedName}")
-    except requests.exceptions.RequestsException as e:
-        print(f"Failed for {url}")
+        #  print(f"Done with CSV: {savedName}")
+    except requests.exceptions.RequestException as e:
+        print(f"Failed for {url}: {e}")
 
 
 def forEachCSV(action, startTime=datetime(2018, 1, 1), endTime=datetime.now()):
@@ -43,12 +47,12 @@ def forEachCSV(action, startTime=datetime(2018, 1, 1), endTime=datetime.now()):
     n = (endTime - startTime).days
     urls = [makeUrlFor(startTime + timedelta(days=i)) for i in range(n)]
 
-    pool = Pool(cpu_count())
-
-    res = pool.map(__processFunc, urls)
-    pool.close()
-    pool.join()
-    return
+    return [__processFunc(u, action) for u in urls]
+    #  pool = Pool(cpu_count())
+    #  res = pool.map(partial(__processFunc, action), urls)
+    #  pool.close()
+    #  pool.join()
+    #  return
 
 
 if __name__ == "__main__":

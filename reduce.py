@@ -64,6 +64,7 @@ def writeFilteredCargoShips(r, out_w, uniq: set, ship_w):
 
 def processCSV(filename, out_w, uniq: set, ship_w):
     in_f = open(filename)
+    print(f"Processing CSV: {filename}")
     writeFilteredCargoShips(csv.reader(in_f), out_w, uniq, ship_w)
     in_f.close()
 
