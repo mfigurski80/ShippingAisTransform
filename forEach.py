@@ -31,6 +31,7 @@ def forEachDataset(action, startTime=datetime(2018, 1, 1), endTime=datetime.now(
         try:
             savedName = getFromZip(url)
             # DO SOMETHING...
+            action(savedName)
             os.remove(savedName)
         except requests.exceptions.RequestException as e:
             print(f"Failed for {curTime}")
@@ -40,8 +41,8 @@ def forEachDataset(action, startTime=datetime(2018, 1, 1), endTime=datetime.now(
 if __name__ == "__main__":
     print("Testing dataset download...\n")
 
-    def printSize(set):
-        print(len(set))
+    def printSize(setName):
+        print(setName)
 
     forEachDataset(
         printSize,
