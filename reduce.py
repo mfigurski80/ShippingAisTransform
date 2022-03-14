@@ -1,19 +1,20 @@
 import csv
 from forEach import forEachDataset, getFromZip
+from distance import distance
 
-
-def findUniqueShips(in_f, out_w):
-    r = csv.reader(in_f)
-    uniq = set({})
-    headers = next(r)
-    out_w.writerow(
-        (headers[0], headers[7], headers[10], headers[12], headers[13], headers[15])
-    )
-    for row in r:
-        if int("0" + row[10]) > 70:  # if cargo or oil...
-            if row[0] not in uniq:
-                uniq.add(row[0])
-                out_w.writerow((row[0], row[7], row[10], row[12], row[13], row[15]))
+PORTS = [
+    (40.808, 124.163),  # Humbolt Bay
+    (24.149, 119.208),  # Hueneme
+    (33.754, 118.216),  # Long Beach -- seems to be most common
+    (33.729, -118.262),  # Los Angeles
+    (37.796, 122.279),  # Oakland
+    (37.508, 122.209),  # Redwood City
+    (37.913, 122.36),  # Richmond
+    (32.735, 117.177),  # San Diego
+    (37.796, 122.395),  # San Francisco
+    (37.951, 121.327),  # Stockton
+    (38.565, 121.549),  # West Sacramento
+]
 
 
 def filterCargoShips(r, out_w, uniq: set, ship_w):
@@ -28,12 +29,32 @@ def filterCargoShips(r, out_w, uniq: set, ship_w):
             headers[5],
             headers[6],
             headers[15],
+            "Near",
+            "Distance",
         )
     )
     for row in r:
         if row[10] != "" and int(row[10]) > 70:
+
+            lo = float(row[2])
+            la = float(row[3])
+            d = [distance(lo, la, p[0], p[1]) for p in PORTS]
+            min_index = min(range(len(d)), key=d.__getitem__)
+            if d[min_index] > 200:  # filter more than 200km away
+                continue
             out_w.writerow(
-                (row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[15])
+                (
+                    row[0],
+                    row[1],
+                    row[2],
+                    row[3],
+                    row[4],
+                    row[5],
+                    row[6],
+                    row[15],
+                    min_index,
+                    round(d[min_index], 2),
+                )
             )
             if row[0] not in uniq:
                 uniq.add(row[0])
