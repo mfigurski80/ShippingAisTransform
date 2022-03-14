@@ -34,7 +34,7 @@ def __processFunc(url):
         print(f"Failed for {url}")
 
 
-def forEachDataset(action, startTime=datetime(2018, 1, 1), endTime=datetime.now()):
+def forEachCSV(action, startTime=datetime(2018, 1, 1), endTime=datetime.now()):
     baseurl = "https://coast.noaa.gov/htdata/CMSP/AISDataHandler"
     print(f"{startTime.date()} -> {endTime.date()}")
     if startTime < datetime(2018, 1, 1):
@@ -54,4 +54,4 @@ def forEachDataset(action, startTime=datetime(2018, 1, 1), endTime=datetime.now(
 if __name__ == "__main__":
     print("Testing dataset download...\n")
 
-    forEachDataset(print, datetime(2021, 1, 1))
+    forEachCSV(print, datetime(2021, 1, 1))

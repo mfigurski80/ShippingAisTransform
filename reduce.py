@@ -1,5 +1,6 @@
 import csv
-from forEach import forEachDataset, getFromZip
+from functools import partial
+from forEach import forEachCSV, getFromZip
 from distance import distance
 
 PORTS = [
@@ -17,7 +18,7 @@ PORTS = [
 ]
 
 
-def filterCargoShips(r, out_w, uniq: set, ship_w):
+def writeFilteredCargoShips(r, out_w, uniq: set, ship_w):
     headers = next(r)
     out_w.writerow(
         (
@@ -61,17 +62,35 @@ def filterCargoShips(r, out_w, uniq: set, ship_w):
                 ship_w.writerow((row[0], row[7], row[10], row[12], row[13]))
 
 
+def processCSV(filename, out_w, uniq: set, ship_w):
+    in_f = open(filename)
+    writeFilteredCargoShips(csv.reader(in_f), out_w, uniq, ship_w)
+    in_f.close()
+
+
+def buildFullDataset():
+    out_f = open("FILTERED_AIS.csv", "w")
+    ships_f = open("ships.csv", "w")
+    uniq = set({})
+    forEachCSV(
+        partial(
+            processCSV, out_w=csv.writer(out_f), uniq=uniq, ship_w=csv.writer(ships_f)
+        )
+    )
+    out_f.close()
+    ships_f.close()
+
+
 if __name__ == "__main__":
     #  getFromZip(
     #  "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2018/AIS_2018_01_01.zip"
     #  )
-    in_f = open("AIS_2018_01_01.csv")
-    out_f = open("FILTERED_AIS.csv", "w")
-    ships_f = open("ships_2018_01_01.csv", "w")
-    uniq = set({})
-    filterCargoShips(csv.reader(in_f), csv.writer(out_f), uniq, csv.writer(ships_f))
-    #  findUniqueShips(in_f, csv.writer(ships_f))
-
-    in_f.close()
-    out_f.close()
-    ships_f.close()
+    buildFullDataset()
+    #  in_fname = "AIS_2018_01_01.csv"
+    #  out_f = open("FILTERED_AIS.csv", "w")
+    #  ships_f = open("ships_2018_01_01.csv", "w")
+    #  uniq = set({})
+    #  processExcel(in_fname, csv.writer(out_f), uniq, csv.writer(ships_f))
+    #  in_f.close()
+    #  out_f.close()
+    #  ships_f.close()
