@@ -3,6 +3,7 @@ import requests
 import zipfile
 from io import BytesIO
 import os
+from multiprocessing import Pool, cpu_count
 
 
 def getFromZip(url: str):
@@ -14,7 +15,23 @@ def getFromZip(url: str):
     if len(files) > 1:
         raise OSError(f"Extracted zipfile with multiple files: {files}")
     z.extractall()
+    z.close()
     return files[0]
+
+
+def makeUrlFor(t):
+    return f"https://coast.noaa.gov/htdata/CMSP/AISDataHandler/{t.year}/AIS_{t.year}_{str(t.month).zfill(2)}_{str(t.day).zfill(2)}.zip"
+
+
+def __processFunc(url):
+    try:
+        print(url)
+        savedName = getFromZip(url)
+        action(savedName)
+        os.remove(savedName)
+        print(f"Done with {savedName}")
+    except requests.exceptions.RequestsException as e:
+        print(f"Failed for {url}")
 
 
 def forEachDataset(action, startTime=datetime(2018, 1, 1), endTime=datetime.now()):
@@ -23,27 +40,18 @@ def forEachDataset(action, startTime=datetime(2018, 1, 1), endTime=datetime.now(
     if startTime < datetime(2018, 1, 1):
         print("Cannot get datasets before 2018")
         return
-    curTime = startTime
-    while curTime < endTime:
-        url = f"{baseurl}/{curTime.year}/AIS_{curTime.year}_{str(curTime.month).zfill(2)}_{str(curTime.day).zfill(2)}.zip"
-        print(f"{curTime.date()} : {url}")
-        #  print(f"{curTime.day} {curTime.month} {curTime.year}")
-        try:
-            savedName = getFromZip(url)
-            # DO SOMETHING...
-            action(savedName)
-            os.remove(savedName)
-        except requests.exceptions.RequestException as e:
-            print(f"Failed for {curTime}")
-        curTime += timedelta(days=1)
+    n = (endTime - startTime).days
+    urls = [makeUrlFor(startTime + timedelta(days=i)) for i in range(n)]
+
+    pool = Pool(cpu_count())
+
+    res = pool.map(__processFunc, urls)
+    pool.close()
+    pool.join()
+    return
 
 
 if __name__ == "__main__":
     print("Testing dataset download...\n")
 
-    def printSize(setName):
-        print(setName)
-
-    forEachDataset(
-        printSize,
-    )
+    forEachDataset(print, datetime(2021, 1, 1))
