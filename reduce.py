@@ -1,4 +1,7 @@
 import csv
+import os
+from datetime import datetime, timedelta
+
 from functools import partial
 from forEach import forEachCSV, getFromZip
 from distance import distance
@@ -18,22 +21,33 @@ PORTS = [
 ]
 
 
+def initCSV(filename, columns) -> bool:  # return whether was initted
+    if os.path.exists(filename) and os.stat(filename).st_size != 0:
+        return False
+    f = open(filename, "w")
+    wr = csv.writer(f)
+    wr.writerow(columns)
+    f.close()
+    return True
+
+
+def readLastLine(filename) -> str:
+    with open(filename, "rb") as f:
+        try:  # catch OSError in case of a one line file
+            f.seek(-2, os.SEEK_END)
+            while f.read(1) != b"\n":
+                f.seek(-2, os.SEEK_CUR)
+        except OSError:
+            f.seek(0)
+        last_line = f.readline().decode()
+    return last_line
+
+
 def writeFilteredCargoShips(r, out_w, uniq: set, ship_w):
+    """Main function that iterates over rows of data and writes the ones it wants to
+    output csvs. Takes csv readers and writers (and a set for storing unique ships)
+    """
     headers = next(r)
-    out_w.writerow(
-        (
-            headers[0],
-            headers[1],
-            headers[2],
-            headers[3],
-            headers[4],
-            headers[5],
-            headers[6],
-            headers[15],
-            "Near",
-            "Distance",
-        )
-    )
     for row in r:
         if row[10] != "" and int(row[10]) > 70:
 
@@ -47,8 +61,8 @@ def writeFilteredCargoShips(r, out_w, uniq: set, ship_w):
                 (
                     row[0],
                     row[1],
-                    row[2],
-                    row[3],
+                    round(lo, 2),  #  row[2],
+                    round(la, 2),  #  row[3],
                     row[4],
                     row[5],
                     row[6],
@@ -70,14 +84,49 @@ def processCSV(filename, out_w, uniq: set, ship_w):
 
 
 def buildFullDataset():
-    out_f = open("FILTERED_AIS.csv", "w")
-    ships_f = open("ships.csv", "w")
+
+    # set up initial variables
+    start_time = datetime(2018, 1, 1)
+
+    # set up aggregate dataset
+    agg_fname = "AGGREGATE_AIS.csv"
+    agg_cols = [
+        "MMSI",
+        "Time",
+        "Lat",
+        "Lon",
+        "SOG",
+        "COG",
+        "Heading",
+        "Cargo",
+        "Near",
+        "Distance",
+    ]
+
+    didInitAggregate = initCSV(agg_fname, agg_cols)
+    if not didInitAggregate:
+        last = readLastLine(agg_fname).strip().split(",")
+        if last[1] != agg_cols[1]:
+            start_time = datetime.fromisoformat(last[1]) + timedelta(days=1)
+            print(f"FOUND data up to: {start_time.date()}")
+    out_f = open(agg_fname, "a")
+
+    # set up unique ships dataset
+    ship_fname = "ships.csv"
+    ship_cols = ["MMSI", "Name", "Type", "Length", "Width"]
+    didInitShips = initCSV(ship_fname, ship_cols)
+    ships_f = open(ship_fname, "a")
     uniq = set({})
+
+    # continue building
     forEachCSV(
         partial(
             processCSV, out_w=csv.writer(out_f), uniq=uniq, ship_w=csv.writer(ships_f)
-        )
+        ),
+        start_time,
     )
+
+    # clean up
     out_f.close()
     ships_f.close()
 

@@ -38,14 +38,14 @@ def __processFunc(url, action):
         print(f"Failed for {url}: {e}")
 
 
-def forEachCSV(action, startTime=datetime(2018, 1, 1), endTime=datetime.now()):
+def forEachCSV(action, start_time=datetime(2018, 1, 1), end_time=datetime.now()):
     baseurl = "https://coast.noaa.gov/htdata/CMSP/AISDataHandler"
-    print(f"{startTime.date()} -> {endTime.date()}")
-    if startTime < datetime(2018, 1, 1):
+    print(f"{start_time.date()} -> {end_time.date()}")
+    if start_time < datetime(2018, 1, 1):
         print("Cannot get datasets before 2018")
         return
-    n = (endTime - startTime).days
-    urls = [makeUrlFor(startTime + timedelta(days=i)) for i in range(n)]
+    n = (end_time - start_time).days
+    urls = [makeUrlFor(start_time + timedelta(days=i)) for i in range(n)]
 
     return [__processFunc(u, action) for u in urls]
     #  pool = Pool(cpu_count())
