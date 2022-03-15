@@ -56,7 +56,7 @@ def writeFilteredCargoShips(r, out_w, uniq: set, ship_w):
     """
     headers = next(r)
     for row in r:
-        if row[10] != "" and int(row[10]) > 70:
+        if row[10] != "" and int(row[10]) > 70 and int(row[10]) < 90:
 
             lo = float(row[2])
             la = float(row[3])
@@ -144,10 +144,11 @@ def buildFullDataset():
 
 
 if __name__ == "__main__":
-    #  getFromZip(
-    #  "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2018/AIS_2018_01_01.zip"
-    #  )
-    buildFullDataset()
+    getFromZip(
+        "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2018/AIS_2018_01_01.zip"
+    )
+    #  buildFullDataset()
+
     #  in_fname = "AIS_2018_01_01.csv"
     #  out_f = open("FILTERED_AIS.csv", "w")
     #  ships_f = open("ships_2018_01_01.csv", "w")
