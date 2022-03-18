@@ -41,8 +41,8 @@ def __processFunc(url, action):
 def forEachCSV(action, start_time=datetime(2018, 1, 1), end_time=datetime.now()):
     baseurl = "https://coast.noaa.gov/htdata/CMSP/AISDataHandler"
     print(f"{start_time.date()} -> {end_time.date()}")
-    if start_time < datetime(2018, 1, 1):
-        print("Cannot get datasets before 2018")
+    if start_time < datetime(2015, 1, 1):
+        print("Cannot get datasets before 2015")
         return
     n = (end_time - start_time).days
     urls = [makeUrlFor(start_time + timedelta(days=i)) for i in range(n)]

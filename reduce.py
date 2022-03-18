@@ -56,7 +56,11 @@ def writeFilteredCargoShips(r, out_w, uniq: set, ship_w):
     """
     headers = next(r)
     for row in r:
-        if row[10] != "" and int(row[10]) > 70 and int(row[10]) < 90:
+        try:
+            typ = int(row[10)
+        except:
+            continue
+        if typ > 70 and typ < 90:
 
             lo = float(row[2])
             la = float(row[3])
@@ -94,6 +98,7 @@ def buildFullDataset():
 
     # set up initial variables
     start_time = datetime(2018, 1, 1)
+    end_time = datetime(2022, 1, 1)
 
     # set up aggregate dataset
     agg_fname = "AGGREGATE_AIS.csv"
@@ -136,6 +141,7 @@ def buildFullDataset():
             processCSV, out_w=csv.writer(out_f), uniq=uniq, ship_w=csv.writer(ships_f)
         ),
         start_time,
+        end_time,
     )
 
     # clean up
@@ -144,10 +150,10 @@ def buildFullDataset():
 
 
 if __name__ == "__main__":
-    getFromZip(
-        "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2018/AIS_2018_01_01.zip"
-    )
-    #  buildFullDataset()
+    #  getFromZip(
+    #  "https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2018/AIS_2018_01_01.zip"
+    #  )
+    buildFullDataset()
 
     #  in_fname = "AIS_2018_01_01.csv"
     #  out_f = open("FILTERED_AIS.csv", "w")
