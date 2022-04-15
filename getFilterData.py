@@ -57,7 +57,7 @@ def writeFilteredCargoShips(r, out_w, uniq: set, ship_w):
     headers = next(r)
     for row in r:
         try:
-            typ = int(row[10)
+            typ = int(row[10])
         except:
             continue
         if typ > 70 and typ < 90:
